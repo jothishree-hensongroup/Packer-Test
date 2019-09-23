@@ -1,0 +1,76 @@
+{
+    "variables": {
+        "name": "cherwell-W2012R2-csm-cam",
+        "description": "Cherwell Windows 2012R2 CSM CAM Image",
+        "aws_instance_type": "m5.xlarge",
+        "aws_region_name": "ca-central-1",
+        "aws_subnet_id": "subnet-02269897c89a235f2",      
+        "base_ami": "ami-0bc55e3f20d763389",
+        "image_version": "1.0.0"
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "region": "{{user `aws_region_name`}}",
+            "instance_type": "{{user `aws_instance_type`}}",
+            "source_ami": "{{user `base_ami`}}",
+            "ami_name": "{{user `name`}}-{{user `image_version`}}",
+            "user_data_file": "../../global/bootstrap/aws/userdata/Setup-Ec2Userdata.ps1",
+            "communicator": "winrm",
+            "winrm_timeout": "4h",
+            "winrm_port": 5985,
+            "winrm_username": "Administrator",
+            "subnet_id": "{{user `aws_subnet_id`}}",
+            "security_group_id": "{{user `aws_security_group_id`}}",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "encrypt_boot": true,
+            "tags": {
+                "Name": "{{user `name`}}-{{user `image_version`}}",
+                "Product":"CSM,CAM",
+                "Description": "{{user `description`}}",
+                "version": "2012r2",
+                "builder": "packer"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "powershell",
+            "scripts": [
+                "../../global/provisioners/powershell/Disable-Uac.ps1",
+                "../../global/provisioners/powershell/Update-Powershell.ps1",
+                "../../global/provisioners/powershell/New-ToolsDir.ps1"
+            ]
+        },
+        {
+            "type": "windows-restart",
+            "restart_timeout": "1h"
+        },
+        {
+            "type": "powershell",
+            "scripts": [
+                "../../global/provisioners/powershell/Install-Nuget.ps1",
+                "../../global/provisioners/powershell/Install-Windowsfeatures.ps1",
+                "../../global/provisioners/powershell/Get-Tools.ps1",
+                "../../global/provisioners/CSM/Install-CSMPrereqs.ps1" 
+            ]
+        },
+        {
+            "type": "windows-restart",
+            "restart_timeout": "1h"
+        },
+        {
+            "type": "powershell",
+            "environment_vars": "CSMLANG=English",
+            "scripts": [
+                "../../global/provisioners/CSM/Get-CherwellInstallers.ps1",
+                "../../global/provisioners/powershell/Setup-Defrag-C.ps1",
+                "../../global/provisioners/powershell/Setup-Sysprep-Ec2config.ps1",
+                "../../global/provisioners/powershell/Setup-Sysprep-Bundleconfig.ps1",
+                "../../global/provisioners/powershell/Setup-Sysprep-Post.ps1",
+                "../../global/provisioners/powershell/Run-Sysprep.ps1"
+            ]
+        }
+    ]
+}
