@@ -1,4 +1,4 @@
 # Packer-Test
 Packer-Test
 
-[[Deploy to Azure](https://azuredeploy.net/deploybutton.png)](https://azuredepploy.net)
+[![Deploy to Azure](https://azuredeploy.net/deploybutton.png)](https://azuredepploy.net)
